@@ -17,6 +17,7 @@ type TunnelDef struct {
 	JumpHost   string `yaml:"jumpHost"`
 	RemoteHost string `yaml:"remoteHost"`
 	RemotePort int    `yaml:"remotePort"`
+	EnvCommand string `yaml:"envCommand"`
 }
 
 type Config struct {
@@ -38,7 +39,7 @@ func main() {
 	goyaml.Unmarshal(configYaml, &config)
 
 	for _, t := range config.Tunnels {
-		s := server.New(t.Name, t.LocalPort, t.JumpHost, t.RemoteHost, t.RemotePort)
+		s := server.New(t.Name, t.LocalPort, t.JumpHost, t.RemoteHost, t.RemotePort, t.EnvCommand)
 		go s.Listen()
 		defer s.Close()
 	}

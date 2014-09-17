@@ -6,6 +6,7 @@ import (
 	"log"
 	"net"
 	"os/exec"
+	"strings"
 	"time"
 )
 
@@ -16,18 +17,20 @@ type Server struct {
 	remoteHost string
 	remotePort int
 	proxyPort  int
+	envCmd     string
 
 	pubsub *pubsub.PubSub
 	cmd    *exec.Cmd
 }
 
-func New(name string, localPort int, jumpHost string, remoteHost string, remotePort int) *Server {
+func New(name string, localPort int, jumpHost string, remoteHost string, remotePort int, envCommand string) *Server {
 	s := &Server{
 		name:       name,
 		localPort:  localPort,
 		jumpHost:   jumpHost,
 		remoteHost: remoteHost,
 		remotePort: remotePort,
+		envCmd:     envCommand,
 	}
 
 	s.pubsub = pubsub.New(0)
@@ -130,6 +133,16 @@ func (s *Server) handlePending(in <-chan *net.TCPConn) {
 					fmt.Sprintf("localhost:%d:%s:%d", s.proxyPort, s.remoteHost, s.remotePort),
 					s.jumpHost,
 				)
+
+				if s.envCmd != "" {
+					out, err := exec.Command("/bin/bash", "-c", s.envCmd).Output()
+					if err != nil {
+						log.Fatal(err)
+					}
+
+					log.Printf("%s: using custom environment %s", s.name, out)
+					cmd.Env = strings.Split(string(out), "\n")
+				}
 
 				log.Printf("%s: starting ssh\n", s.name)
 
