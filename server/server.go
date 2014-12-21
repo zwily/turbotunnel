@@ -2,12 +2,13 @@ package server
 
 import (
 	"fmt"
-	"github.com/tuxychandru/pubsub"
 	"log"
 	"net"
 	"os/exec"
 	"strings"
 	"time"
+
+	"github.com/tuxychandru/pubsub"
 )
 
 type Server struct {
@@ -126,7 +127,8 @@ func (s *Server) handlePending(in <-chan *net.TCPConn) {
 				)
 				go notifyCmd.Run()
 
-				cmd := exec.Command("/usr/bin/ssh",
+				cmd := exec.Command("/usr/bin/env",
+					"ssh",
 					"-N",
 					"-o", "ExitOnForwardFailure=true",
 					"-L",
